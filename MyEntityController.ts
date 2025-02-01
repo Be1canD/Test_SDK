@@ -15,7 +15,7 @@ import type {
     PlayerCameraOrientation,
     BlockType,
 } from 'hytopia';
-import { getWeaponByKillCount, WeaponConfig, WeaponKeys } from './weapons';
+import { getWeaponByKillCount, WeaponConfig } from './weapons/weapons';
 
 export default class MyEntityController extends BaseEntityController {
     /** @internal */
