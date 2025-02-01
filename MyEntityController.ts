@@ -15,7 +15,7 @@ import type {
     PlayerCameraOrientation,
     BlockType,
 } from 'hytopia';
-import { getWeaponByKillCount, WeaponConfig } from './weapons/weapons';
+import { getStartingWeapon, getWeaponByKillCount, WeaponConfig } from './weapons/weapons';
 
 export default class MyEntityController extends BaseEntityController {
     /** @internal */
@@ -31,7 +31,7 @@ export default class MyEntityController extends BaseEntityController {
     private _currentRecoilY: number = 0;
     private _currentRecoilX: number = 0;
 
-    private currentWeapon: WeaponConfig = getWeaponByKillCount(0);
+    private currentWeapon: WeaponConfig = getStartingWeapon();
     private currentAmmo: number = this.currentWeapon.maxAmmo;
     private lastFireTime: number = 0;
     private health: number = 100;
