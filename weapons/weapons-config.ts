@@ -18,7 +18,9 @@ const weaponConfigs = [
         idleAnimation: "idle",
         walkAnimation: 'walk', // Анимация ходьбы
         fireAnimation: 'fire', // Анимация выстрела
+        fireAudio: "audio/pistol-fire.mp3",
         reloadAnimation: "simple_interact",
+        reloadAudio: "audio/pistol-reload.mp3",
         headDamage: 10, // Урон по голове
         bodyDamage: 5, // Урон по телу
         limbDamage: 3, // Урон по конечностям
@@ -41,7 +43,9 @@ const weaponConfigs = [
         idleAnimation: "idle_ak",
         walkAnimation: 'walk_ak', // Анимация ходьбы
         fireAnimation: 'fire_ak', // Анимация выстрела
+        fireAudio: "audio/pistol-fire.mp3",
         reloadAnimation: "recharge_ak",
+        reloadAudio: "audio/pistol-reload.mp3",
         headDamage: 14, // Урон по голове
         bodyDamage: 7, // Урон по телу
         limbDamage: 3, // Урон по конечностям
@@ -64,7 +68,9 @@ const weaponConfigs = [
         idleAnimation: "idle_ak",
         walkAnimation: 'walk_ak', // Анимация ходьбы
         fireAnimation: 'fire_ak', // Анимация выстрела
+        fireAudio: "audio/pistol-fire.mp3",
         reloadAnimation: "recharge_ak",
+        reloadAudio: "audio/pistol-reload.mp3",
         headDamage: 14, // Урон по голове
         bodyDamage: 7, // Урон по телу
         limbDamage: 3, // Урон по конечностям

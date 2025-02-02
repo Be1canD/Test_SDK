@@ -367,6 +367,8 @@ export default class MyEntityController extends BaseEntityController {
         // Play reload animation based on weapon type
         entity.startModelOneshotAnimations([this.currentWeapon.reloadAnimation]);
 
+        this.playWeaponSound(entity, this.currentWeapon, true);
+
         let remainingTime = this.currentWeapon.reloadTime / 1000;
         const updateInterval = setInterval(() => {
             console.log(`[${this.getPlayerIdentifier(entity)}] Reloading... ${remainingTime.toFixed(1)}s`);
@@ -400,11 +402,11 @@ export default class MyEntityController extends BaseEntityController {
         this._currentSpread = this.currentWeapon.spread;
     }
 
-    private playWeaponSound(entity: Entity, isReload: boolean): void {
+    private playWeaponSound(entity: Entity, weapon:WeaponConfig, isReload: boolean): void {
         if (!entity.world) return;
 
         const audio = new Audio({
-            uri: isReload ? 'audio/pistol-reload.mp3' : 'audio/pistol-fire.mp3',
+            uri: isReload ? weapon.reloadAudio : weapon.fireAudio,
             loop: false,
             volume: isReload ? 0.8 : 0.6,
             attachedToEntity: entity,
@@ -543,7 +545,7 @@ export default class MyEntityController extends BaseEntityController {
                 console.log(`[${this.getPlayerIdentifier(entity)}] Firing ${this.currentWeapon.name}!`);
 
                 // Play fire sound
-                this.playWeaponSound(entity, false);
+                this.playWeaponSound(entity, this.currentWeapon, false);
 
                 // Fire weapon
                 const rayStart = {
