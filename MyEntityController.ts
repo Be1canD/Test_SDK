@@ -50,6 +50,8 @@ export default class MyEntityController extends BaseEntityController {
     private _lastWeaponBeforeDeath: WeaponConfig = this.currentWeapon;
     private _playerNames: Map<number, string> = new Map();
 
+
+
     private getPlayerIdentifier(entity: PlayerEntity): string {
         // Priority: custom name -> default name -> ID
         const customName = this._playerNames.get(entity.id!);
@@ -58,18 +60,17 @@ export default class MyEntityController extends BaseEntityController {
     }
 
     private broadcastKillFeed(world: World, killer: PlayerEntity, victim: PlayerEntity): void {
-        // Send message to all players through entityManager
         const killFeedData = {
             type: 'kill-feed',
             killer: this.getPlayerIdentifier(killer),
             victim: this.getPlayerIdentifier(victim)
         };
 
-        // Get all players in the world
+        // Получаем всех игроков в мире
         const allPlayerEntities = world.entityManager.getAllPlayerEntities();
         allPlayerEntities.forEach((playerEntity: PlayerEntity) => {
             if (playerEntity.player?.ui) {
-                playerEntity.player.ui.sendData(killFeedData);
+                playerEntity.player.ui.sendData(killFeedData); // Отправляем данные о убийстве
             }
         });
     }
@@ -79,28 +80,30 @@ export default class MyEntityController extends BaseEntityController {
 
         console.log(`[${this.getPlayerIdentifier(entity)}] Updating weapon model. Current weapon: ${this.currentWeapon.name}`);
 
-        // Remove old weapon if exists
+        // Удалите старое оружие, если оно существует
         if (this._weaponEntity) {
             console.log(`[${this.getPlayerIdentifier(entity)}] Removing old weapon entity`);
             this._weaponEntity.despawn();
             this._weaponEntity = undefined;
         }
 
-        // Create new weapon entity
+        // Создайте новое оружие
         this._weaponEntity = new Entity({
             name: `weapon_${this.currentWeapon.name}`,
             modelUri: this.currentWeapon.modelUri,
-            modelScale: 0.5,
+            modelScale: this.currentWeapon.modelScale,
         });
 
-        // Spawn weapon and attach to player's right hand
+        console.log(`[${this.getPlayerIdentifier(entity)}] Creating new weapon entity with model URI: ${this.currentWeapon.modelUri}`);
+
+        // Спавн оружия и привязка к правой руке игрока
         this._weaponEntity.spawn(entity.world, { x: 0, y: 0, z: 0 });
         console.log(`[${this.getPlayerIdentifier(entity)}] Spawned new weapon entity: ${this.currentWeapon.name}`);
 
         // Use the correct anchor point and adjust position/rotation for each weapon
         this._weaponEntity.setParent(entity, 'hand_right_anchor',
-            { x: 0.0, y: -0.2, z: 0.3 },
-            Quaternion.fromEuler(-90,0,0)
+            this.currentWeapon.offsetPosition,
+            Quaternion.fromEuler(this.currentWeapon.offsetRotation.x, this.currentWeapon.offsetRotation.y, this.currentWeapon.offsetRotation.z)
         );
         console.log(`[${this.getPlayerIdentifier(entity)}] Weapon attached to player hand`);
     }
@@ -149,11 +152,11 @@ export default class MyEntityController extends BaseEntityController {
     private calculateDamage(weapon: WeaponConfig, hitLocation: 'head' | 'body' | 'limbs'): number {
         switch (hitLocation) {
             case 'head':
-                return weapon.name === 'pistol' ? 10.0 : 14.4;
+                return weapon.headDamage;
             case 'limbs':
-                return weapon.name === 'pistol' ? 3.0 : 3.6;
+                return weapon.limbDamage;
             default:
-                return weapon.name === 'pistol' ? 5.6 : 7.2;
+                return weapon.bodyDamage;
         }
     }
 
@@ -175,17 +178,33 @@ export default class MyEntityController extends BaseEntityController {
     private die(entity: PlayerEntity, attackerEntity: PlayerEntity): void {
         console.log(`[${this.getPlayerIdentifier(entity)}] Died!`);
 
-        // Save current weapon before death
+        // Log the killer's name
+        if (attackerEntity) {
+            console.log(`${this.getPlayerIdentifier(attackerEntity)} killed ${this.getPlayerIdentifier(entity)}`);
+        }
+
+        // Сохраните текущее оружие перед смертью
         this._lastWeaponBeforeDeath = this.currentWeapon;
+
+        // Отправляем сообщение о смерти с отсчетом
+        if (entity.player && entity.player.ui) {
+            entity.player.ui.sendData({
+                type: 'player-died',
+                respawnTime: 5
+            });
+        }
+
+        // Отправляем информацию об убийстве всем игрокам
+        if (entity.world) {
+            this.broadcastKillFeed(entity.world, attackerEntity, entity);
+        }
+
+        // Удалите старое оружие, когда игрок мертв
 
         if (attackerEntity && attackerEntity.controller instanceof MyEntityController) {
             const attackerController = attackerEntity.controller;
             attackerController.kills++;
 
-            // Send kill information to all players
-            if (entity.world) {
-                this.broadcastKillFeed(entity.world, attackerEntity, entity);
-            }
 
 
             const newAttackerWeapon = getWeaponByKillCount(attackerController.kills);
@@ -204,12 +223,29 @@ export default class MyEntityController extends BaseEntityController {
             this._weaponEntity = undefined;
         }
 
-        if (entity.player && entity.player.ui) {
-            // Отправляем сообщение о смерти с отсчетом
-            entity.player.ui.sendData({
-                type: 'player-died',
-                respawnTime: 5
-            });
+        // Проверка на смену оружия
+        if (attackerEntity && attackerEntity.controller instanceof MyEntityController) {
+            const attackerController = attackerEntity.controller;
+            attackerController.kills++;
+
+
+            const newAttackerWeapon = getWeaponByKillCount(attackerController.kills);
+            if (attackerController.currentWeapon != newAttackerWeapon) {
+                attackerController.switchWeapon(newAttackerWeapon, attackerEntity)
+                console.log(`[${this.getPlayerIdentifier(attackerEntity)}] Upgraded to ${newAttackerWeapon.name}`);
+            }
+
+            // Проверка на победу
+            // This may cause a race condition?? How is the win signalled to the rest of the server?
+            if (attackerController.currentWeapon.victory) {
+                // Отправляем сообщение о победе
+                if (attackerEntity.player && attackerEntity.player.ui) {
+                    attackerEntity.player.ui.sendData({
+                        type: 'victory-screen',
+                        message: 'You Win!',
+                    });
+                }
+            }
         }
 
         let respawnTime = 5;
@@ -328,6 +364,9 @@ export default class MyEntityController extends BaseEntityController {
         this._isReloading = true;
         console.log(`[${this.getPlayerIdentifier(entity)}] Started reloading ${this.currentWeapon.name}...`);
 
+        // Play reload animation based on weapon type
+        entity.startModelOneshotAnimations([this.currentWeapon.reloadAnimation]);
+
         let remainingTime = this.currentWeapon.reloadTime / 1000;
         const updateInterval = setInterval(() => {
             console.log(`[${this.getPlayerIdentifier(entity)}] Reloading... ${remainingTime.toFixed(1)}s`);
@@ -413,17 +452,18 @@ export default class MyEntityController extends BaseEntityController {
                 entity.startModelLoopedAnimations(runAnimations);
                 this._stepAudio?.setPlaybackRate(0.81);
             } else {
-                const walkAnimations = ['walk_upper', 'walk_lower'];
-                entity.stopModelAnimations(Array.from(entity.modelLoopedAnimations).filter(v => !walkAnimations.includes(v)));
-                entity.startModelLoopedAnimations(walkAnimations);
+                // Choose walk animation based on current weapon
+                const walkAnimation = this.currentWeapon.walkAnimation;
+                entity.stopModelAnimations(Array.from(entity.modelLoopedAnimations).filter(v => !walkAnimation.includes(v)));
+                entity.startModelLoopedAnimations([walkAnimation]);
                 this._stepAudio?.setPlaybackRate(0.55);
             }
             this._stepAudio?.play(entity.world, !this._stepAudio?.isPlaying);
         } else {
             this._stepAudio?.pause();
-            const idleAnimations = ['idle_upper', 'idle_lower'];
-            entity.stopModelAnimations(Array.from(entity.modelLoopedAnimations).filter(v => !idleAnimations.includes(v)));
-            entity.startModelLoopedAnimations(idleAnimations);
+            const idleAnimation = this.currentWeapon.idleAnimation;
+            entity.stopModelAnimations(Array.from(entity.modelLoopedAnimations).filter(v => !idleAnimation.includes(v)));
+            entity.startModelLoopedAnimations([idleAnimation]);
         }
 
         // Calculate movement velocities
@@ -496,7 +536,6 @@ export default class MyEntityController extends BaseEntityController {
         // Handle weapon firing
         const currentTime = Date.now();
         this.updateSpread(currentTime);
-        this.updateUI(entity);
 
         if (ml && !this._isDead && this.currentAmmo > 0 && !this._isReloading) {
             if (currentTime - this.lastFireTime >= this.currentWeapon.fireRate) {
@@ -557,8 +596,8 @@ export default class MyEntityController extends BaseEntityController {
                 this.currentAmmo--;
                 this.updateUI(entity);
 
-                // Play animation
-                entity.startModelOneshotAnimations(['simple_interact']);
+                // Play firing animation
+                entity.startModelOneshotAnimations([this.currentWeapon.fireAnimation]);
 
                 // Update last fire times
                 this.lastFireTime = currentTime;
@@ -567,18 +606,11 @@ export default class MyEntityController extends BaseEntityController {
         }
     }
 
-    public onPlayerData(entity: PlayerEntity, data: any): void {
-        if (data.type === 'set-name') {
-            this._playerNames.set(entity.id!, data.name);
-            console.log(`Player ${entity.id} set name to: ${data.name}`);
 
-            // Обновляем UI после установки имени
-            if (entity.player?.ui) {
-                entity.player.ui.sendData({
-                    type: 'player-name',
-                    name: data.name
-                });
-            }
-        }
+    public switchWeapon(newWeapon: WeaponConfig, entity: PlayerEntity): void {
+        this.currentWeapon = newWeapon;
+        this.currentAmmo = newWeapon.maxAmmo; // Установите максимальное количество патронов для нового оружия
+        this.updateWeaponModel(entity); // Обновите модель оружия
+        this.updateUI(entity); // Обновите интерфейс пользователя
     }
 }
