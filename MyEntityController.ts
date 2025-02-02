@@ -199,24 +199,6 @@ export default class MyEntityController extends BaseEntityController {
             this.broadcastKillFeed(entity.world, attackerEntity, entity);
         }
 
-        // Удалите старое оружие, когда игрок мертв
-
-        if (attackerEntity && attackerEntity.controller instanceof MyEntityController) {
-            const attackerController = attackerEntity.controller;
-            attackerController.kills++;
-
-
-
-            const newAttackerWeapon = getWeaponByKillCount(attackerController.kills);
-            if (attackerController.currentWeapon != newAttackerWeapon) {
-                attackerController.currentWeapon = newAttackerWeapon;
-                attackerController.currentAmmo = newAttackerWeapon.maxAmmo;
-                console.log(`[${this.getPlayerIdentifier(attackerEntity)}] Upgraded to ${newAttackerWeapon.name}`);
-                attackerController.updateWeaponModel(attackerEntity);
-                attackerController.updateUI(attackerEntity);
-            }
-        }
-
         // Remove weapon when dead
         if (this._weaponEntity) {
             this._weaponEntity.despawn();
