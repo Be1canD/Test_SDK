@@ -55,17 +55,17 @@ const weaponConfigs = [
     },
     {
         name: "shotgun",
-        damage: 15,
-        fireRate: 100,
-        range: 70,
-        maxAmmo: 30,
+        damage: 16,
+        fireRate: 2000,
+        range: 20,
+        maxAmmo: 7,
         modelUri: 'models/shotgun.gltf',
         modelScale: 1,
         offsetPosition: {x: 0, y: 0, z: 0},
         offsetRotation: {x: 0, y: 0, z: 0},
-        reloadTime: 2500, // 2.5 seconds
-        spread: 0.055,
-        spreadRecoveryTime: 300,
+        reloadTime: 1200, // 2.5 seconds
+        spread: 0,
+        spreadRecoveryTime: 100,
         requiredKills: 2, // 0.3 seconds
         idleAnimation: "idle_shotgun",
         walkAnimation: 'walk_shotgun', // Анимация ходьбы
@@ -73,23 +73,23 @@ const weaponConfigs = [
         fireAudio: "audio/shotgun-fire.mp3",
         reloadAnimation: "recharge_shotgun",
         reloadAudio: "audio/shotgun-reload.mp3",
-        headDamage: 14, // Урон по голове
-        bodyDamage: 7, // Урон по телу
-        limbDamage: 3, // Урон по конечностям
+        headDamage: 30, // Урон по голове
+        bodyDamage: 14, // Урон по телу
+        limbDamage: 6, // Урон по конечностям
         victory: false, //
         zoomLevel:0,
     },
     {
         name: "awp",
-        damage: 15,
-        fireRate: 100,
-        range: 70,
-        maxAmmo: 30,
+        damage: 23,
+        fireRate: 10,
+        range: 200,
+        maxAmmo: 10,
         modelUri: 'models/awp.gltf',
         modelScale: 1,
         offsetPosition: {x: 0, y: 0, z: 0},
         offsetRotation: {x: 0, y: 0, z: 0},
-        reloadTime: 2500, // 2.5 seconds
+        reloadTime: 4200, // 2.5 seconds
         spread: 0.055,
         spreadRecoveryTime: 300,
         requiredKills: 3, // 0.3 seconds
@@ -99,16 +99,16 @@ const weaponConfigs = [
         fireAudio: "audio/awp-fire.mp3",
         reloadAnimation: "recharge_awp",
         reloadAudio: "audio/awp-reload.mp3",
-        headDamage: 14, // Урон по голове
-        bodyDamage: 7, // Урон по телу
-        limbDamage: 3, // Урон по конечностям
+        headDamage: 70, // Урон по голове
+        bodyDamage: 50, // Урон по телу
+        limbDamage: 30, // Урон по конечностям
         victory: false, //
         zoomLevel: 2.5, // Уровень зума для снайперской винтовки
     },
     {
         name: "rpg",
-        damage: 15,
-        fireRate: 100,
+        damage: 30,
+        fireRate: 10,
         range: 70,
         maxAmmo: 30,
         modelUri: 'models/rpg.gltf',
@@ -125,18 +125,18 @@ const weaponConfigs = [
         fireAudio: "audio/rpg-fire.mp3",
         reloadAnimation: "recharge_rpg",
         reloadAudio: "audio/rpg-reload.mp3",
-        headDamage: 14, // Урон по голове
-        bodyDamage: 7, // Урон по телу
-        limbDamage: 3, // Урон по конечностям
+        headDamage: 90, // Урон по голове
+        bodyDamage: 70, // Урон по телу
+        limbDamage: 50, // Урон по конечностям
         victory: false, //
         zoomLevel: 0,
     },
     {
         name: "baguette",
-        damage: 15,
+        damage: 30,
         fireRate: 100,
         range: 70,
-        maxAmmo: 30,
+        maxAmmo: Infinity,
         modelUri: 'models/baguette.gltf',
         modelScale: 1,
         offsetPosition: {x: 0, y: 0, z: 0},

@@ -18,6 +18,13 @@ import type {
 import { getStartingWeapon, getWeaponByKillCount, WeaponConfig } from './weapons/weapons';
 
 export default class MyEntityController extends BaseEntityController {
+    private world: World;
+
+    constructor(world: World) {
+        super();
+        this.world = world;
+    }
+
     /** @internal */
     private _stepAudio: Audio | undefined;
     private _groundContactCount: number = 0;
@@ -243,10 +250,20 @@ export default class MyEntityController extends BaseEntityController {
 
         this.health = 100;
         this._isDead = false;
-        // Restore weapon from before death
         this.currentWeapon = this._lastWeaponBeforeDeath;
         this.currentAmmo = this.currentWeapon.maxAmmo;
-        entity.setPosition({ x: 0, y: 2, z: 0 });
+
+        // Используйте случайную точку спавна
+        const spawnPoints = [
+            { x: 0, y: 2, z: 0 },   // Убедитесь, что Y >= 2
+            { x: 5, y: 2, z: 5 },
+            { x: -5, y: 2, z: -5 },
+            { x: 10, y: 2, z: 0 },
+            { x: -10, y: 2, z: 0 },
+        ];
+
+        const spawnPoint = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
+        entity.setPosition(spawnPoint); // Устанавливаем позицию игрока на случайную точку спавна
 
         console.log(`[${this.getPlayerIdentifier(entity)}] Respawning with ${this.currentWeapon.name}`);
         this.updateWeaponModel(entity);
@@ -603,5 +620,18 @@ export default class MyEntityController extends BaseEntityController {
         this.currentAmmo = newWeapon.maxAmmo; // Установите максимальное количество патронов для нового оружия
         this.updateWeaponModel(entity); // Обновите модель оружия
         this.updateUI(entity); // Обновите интерфейс пользователя
+    }
+
+    public spawnPlayer(player: PlayerEntity) {
+        const spawnPoints = [
+            { x: 0, y: 4, z: 0 },
+            { x: 5, y: 4, z: 5 },
+            { x: -5, y: 4, z: -5 },
+            { x: 10, y: 4, z: 0 },
+            { x: -10, y: 4, z: 0 },
+        ];
+
+        const spawnPoint = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
+        player.spawn(this.world, spawnPoint); // Спавн игрока в случайной точке
     }
 }
